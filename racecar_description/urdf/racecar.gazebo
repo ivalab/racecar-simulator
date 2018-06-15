@@ -47,15 +47,6 @@
   <material>Gazebo/Black</material>
 </gazebo>
 
-<!-- Gazebo plugins -->
-
-<gazebo>
-  <plugin name="gazebo_ros_control" filename="libgazebo_ros_control.so">
-    <robotNamespace>/racecar</robotNamespace>
-    <robotSimType>gazebo_ros_control/DefaultRobotHWSim</robotSimType>
-  </plugin>
-</gazebo>
-
   <!-- hokuyo -->
 <xacro:unless value="$(optenv DISABLE_GAZEBO_LASER false)">
   <gazebo reference="laser">

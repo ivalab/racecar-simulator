@@ -60,10 +60,10 @@ class OdometryNode:
             euler = tf.transformations.euler_from_quaternion(quat)
         
             #getting the magnitude of the velocity and
-            #determining forward or backward movement
+            #determining forward or backward movement(actual car moves forwrd only)
             v_x = self.last_received_twist.linear.x
             v_y = self.last_received_twist.linear.y
-            angle = 0
+            
             angle = math.atan2(v_y, v_x)
             
             range1 = euler[2] + math.pi/4
@@ -74,13 +74,11 @@ class OdometryNode:
                 num = -1 # velocity and car orintation are in the same direction
             v = num*math.sqrt(math.pow(v_x, 2) + math.pow(v_y, 2))
         
-            #cmd.twist.twist.angular = self.last_received_twist.angular
             cmd = Odometry()
             cmd.header.stamp = self.last_recieved_stamp
             cmd.header.frame_id = 'odom'
             cmd.child_frame_id = 'base_link'
             cmd.pose.pose = self.last_received_pose
-            #cmd.twist.twist = self.last_received_twist
             cmd.twist.twist.linear.x = v
             cmd.twist.twist.linear.y = 0
             cmd.twist.twist.linear.z = 0

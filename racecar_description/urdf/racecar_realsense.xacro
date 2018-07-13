@@ -48,6 +48,9 @@
   </link>
 
   <joint name="left_rear_wheel_joint" type="continuous">
+     <hardwareInterface>PositionJointInterface</hardwareInterface>
+        <hardwareInterface>VelocityJointInterface</hardwareInterface>
+        <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
     <origin xyz="0 0.1 0" rpy="1.5708 0 0" />
     <parent link="chassis" />
     <child link="left_rear_wheel" />
@@ -73,6 +76,9 @@
   </link>
 
   <joint name="right_rear_wheel_joint" type="continuous">
+         <hardwareInterface>PositionJointInterface</hardwareInterface>
+        <hardwareInterface>VelocityJointInterface</hardwareInterface>
+        <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
     <origin xyz="0 -0.1 0" rpy="1.5708 0 0" />
     <parent link="chassis" />
     <child link="right_rear_wheel" />

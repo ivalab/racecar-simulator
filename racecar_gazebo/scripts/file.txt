@@ -14,7 +14,6 @@ from std_msgs.msg import Header
 import numpy as np
 import math
 import tf2_ros
-import tf.transformations
 
 class OdometryNode:
     # Set publishers
@@ -50,58 +49,64 @@ class OdometryNode:
     def timer_callback(self, event):
         if self.last_recieved_stamp is None:
             return
+
+        cmd = Odometry()
+        cmd.header.stamp = self.last_recieved_stamp
+        cmd.header.frame_id = 'odom'
+        cmd.child_frame_id = 'base_link'
+        cmd.pose.pose = self.last_received_pose
+        cmd.twist.twist = self.last_received_twist
         
         #use the velocity angle (atan2) and the yaw to determine the direction
         #they would be 0 or 180 to each other
-        try:
-            orient = self.last_received_pose.orientation
-            quat = [orient.x, orient.y, orient.z, orient.w]
+        #quat = cmd.pose.pose.orientation
+        #euler = tf2_ros.transformations.euler_from_quaternion(quat)
         
-            euler = tf.transformations.euler_from_quaternion(quat)
+        #changing the x and y twist speeds to one twist speed
+        v_x = self.last_received_twist.linear.x
+        v_y = self.last_received_twist.linear.y
+        #determining forward or backward movement
+        angle = math.atan2(v_y/v_x)
         
-            #getting the magnitude of the velocity and
-            #determining forward or backward movement
-            v_x = self.last_received_twist.linear.x
-            v_y = self.last_received_twist.linear.y
-            angle = 0
-            angle = math.atan2(v_y, v_x)
+        if angle < 0:# the vector is in the II or IV quadrant
+            if v_x < 0:# the vector is in the II quadrant
+                angle = math.pi - angle
+            else:
+                angle = 2*math.pi - angle
+        else:# the vector is in the I or III quadrant
+            if v_x < 0:# the vector is in the III quadrant
+                angle = math.pi + angle
+                #else do nothing
+                
+        range1 = euler.yaw + math.pi/4
+        range2 = euler.yaw - math.pi/4
+        
+        num = -1
+        #if angle > range1 and angle < range2 :
+            #num = 1 # velocity and car orintation are in the same direction
             
-            range1 = euler[2] + math.pi/4
-            range2 = euler[2] - math.pi/4
+        v = num*math.sqrt(v_x*v_x + v_y*v_y)
         
-            num = 1
-            if angle > range1 or angle < range2 :
-                num = -1 # velocity and car orintation are in the same direction
-            v = num*math.sqrt(math.pow(v_x, 2) + math.pow(v_y, 2))
+        cmd.twist.twist.linear.x = v
+        cmd.twist.twist.linear.y = 0
+        cmd.twist.twist.linear.z = 0
+        #cmd.twist.twist.angular = self.last_received_twist.angular
         
-            #cmd.twist.twist.angular = self.last_received_twist.angular
-            cmd = Odometry()
-            cmd.header.stamp = self.last_recieved_stamp
-            cmd.header.frame_id = 'odom'
-            cmd.child_frame_id = 'base_link'
-            cmd.pose.pose = self.last_received_pose
-            #cmd.twist.twist = self.last_received_twist
-            cmd.twist.twist.linear.x = v
-            cmd.twist.twist.linear.y = 0
-            cmd.twist.twist.linear.z = 0
-            cmd.twist.twist.angular = self.last_received_twist.angular
-            self.pub_odom.publish(cmd)
-            
-            tf10 = TransformStamped(
-                header=Header(
-                    frame_id=cmd.header.frame_id,
-                    stamp=cmd.header.stamp
-                ),
-                child_frame_id=cmd.child_frame_id,
-                transform=Transform(
-                    translation=cmd.pose.pose.position,
-                    rotation=cmd.pose.pose.orientation
-                )
+        
+        self.pub_odom.publish(cmd)
+
+        tf = TransformStamped(
+            header=Header(
+                frame_id=cmd.header.frame_id,
+                stamp=cmd.header.stamp
+            ),
+            child_frame_id=cmd.child_frame_id,
+            transform=Transform(
+                translation=cmd.pose.pose.position,
+                rotation=cmd.pose.pose.orientation
             )
-            self.tf_pub.sendTransform(tf10)
-            
-        except Exception as e:
-            rospy.loginfo(e)
+        )
+        self.tf_pub.sendTransform(tf)
 
 # Start the node
 if __name__ == '__main__':

@@ -74,6 +74,11 @@ class OdometryNode:
                 num = -1 # velocity and car orintation are in the same direction
             v = num*math.sqrt(math.pow(v_x, 2) + math.pow(v_y, 2))
         
+            #v_x = self.last_received_twist.linear.x
+            #v_y = self.last_received_twist.linear.y
+            
+            #v = math.sqrt(math.pow(v_x, 2) + math.pow(v_y, 2))
+            
             cmd = Odometry()
             cmd.header.stamp = self.last_recieved_stamp
             cmd.header.frame_id = 'odom'
